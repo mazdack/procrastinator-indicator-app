@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import logo from './logo.svg';
 import './App.css';
-import {Col, Grid, Row, Table} from 'react-bootstrap';
+import {Button, Col, Grid, Modal, Row, Table} from 'react-bootstrap';
 
 const Months = Object.freeze({
                                  Jan: 0,
@@ -91,22 +91,51 @@ function MonthHeader(props) {
     );
 }
 
-function Indicator(props) {
-    const daysInMonth = new Date(2018, props.currentMonth, 0).getDate();
+class Indicator extends Component  {
+    constructor(props, context) {
+        super(props, context);
 
-    let values = props.history.filter(history => history.month === props.currentMonth)[0].values.slice(0, daysInMonth);
-    // console.log(values);
-    // console.log(props.currentMonth);
-    let ths = values.map(value => {
-        return (<td>{value}</td>);
-    });
-    // console.log(ths);
-    return (
-        <tr>
-            <td>{props.name}</td>
-            {ths}
-        </tr>
-    );
+        this.handleShow = this.handleShow.bind(this);
+        this.handleClose = this.handleClose.bind(this);
+
+        this.state = {
+            show: false
+        };
+    }
+
+    handleShow() {
+        this.setState({show: true});
+    }
+
+    handleClose() {
+        this.setState({show: false});
+    }
+
+    render() {
+        const daysInMonth = new Date(2018, this.props.currentMonth, 0).getDate();
+
+        let values = this.props.history.filter(history => history.month === this.props.currentMonth)[0].values.slice(0, daysInMonth);
+        let ths = values.map(value => <td>{value}</td>);
+        return (
+            <tr>
+                <td>
+                    <p onClick={this.handleShow}>{this.props.name}</p>
+                    <Modal show={this.state.show} onHide={this.handleClose}>
+                        <Modal.Header closeButton>
+                            <Modal.Title>{this.props.name}</Modal.Title>
+                        </Modal.Header>
+                        <Modal.Body>
+                            Изменяйте индикатор тут
+                        </Modal.Body>
+                        <Modal.Footer>
+                            <Button onClick={this.handleClose}>Close</Button>
+                        </Modal.Footer>
+                    </Modal>
+                </td>
+                {ths}
+            </tr>
+        );
+    }
 }
 
 export default App;
