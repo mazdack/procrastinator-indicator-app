@@ -1,7 +1,6 @@
 import React, {Component} from 'react';
-import logo from './logo.svg';
 import './App.css';
-import {Button, Col, Grid, Modal, Row, Table} from 'react-bootstrap';
+import {Button, Col, ControlLabel, FormControl, Grid, Modal, Row, Table} from 'react-bootstrap';
 
 const Months = Object.freeze({
                                  Jan: 0,
@@ -18,25 +17,24 @@ const Months = Object.freeze({
                                  Dec: 11
                              });
 
+const dateTimeFormatter = Intl.DateTimeFormat('en-GB', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+});
+
 class App extends Component {
     constructor(props) {
-        var i = 1;
         super(props);
         this.state = {
             currentMonth: Months.Apr,
             indicators: [
                 {
-                    name: 'Test',
-                    history: [
-                        {
-                            month: Months.Apr,
-                            // values: Array.from({length: 30}, () => Math.floor(Math.random() * 40)),
-                            values: Array.from({length: 30}, () => i++),
-                        },
-                    ]
+                    name: 'Текущая страница книги Джедайские техники',
+                    history: Array(30).fill(0),
                 },
-            ],
-        }
+            ]
+        };
     }
 
     render() {
@@ -55,7 +53,10 @@ class App extends Component {
 class IndicatorsList extends Component {
     render() {
         const indicators = this.props.indicators.map(
-            indicator => <Indicator{...indicator} currentMonth={this.props.currentMonth} key={indicator.name}/>);
+            indicator => <Indicator history={indicator.history}
+                                    key={indicator.name}
+                                    name={indicator.name}
+            />);
         return (
             <div>
                 <h1>Indicators</h1>
@@ -72,14 +73,12 @@ class IndicatorsList extends Component {
 
 function MonthHeader(props) {
     const daysInMonth = new Date(2018, props.month, 0).getDate();
-    const dateTimeFormatter = Intl.DateTimeFormat('en-GB', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
-    });
+
     var dates = [];
     for (var i = 1; i < daysInMonth; i++) {
-        dates.push(<th key={i} class="rotate"><div>{dateTimeFormatter.format(new Date(2018, props.month, i))}</div></th>);
+        dates.push(<th key={i} className="rotate">
+            <div>{dateTimeFormatter.format(new Date(2018, props.month, i))}</div>
+        </th>);
     }
     return (
         <thead>
@@ -91,19 +90,55 @@ function MonthHeader(props) {
     );
 }
 
-class Indicator extends Component  {
+class Indicator extends Component {
+    constructor(props, context) {
+        super(props, context);
+        this.state = {
+            history: props.history,
+        };
+    }
+
+    handleValueChange(newValue, day) {
+        // console.log('set new value= ' + newValue + ' for day ' + day);
+        let valuesForCurrentMonth = this.state.history;
+        valuesForCurrentMonth[day] = newValue;
+        this.setState({history: valuesForCurrentMonth});
+    }
+
+    render() {
+        let ths = this.state.history.map((value, day) => <IndicatorValue day={day}
+                                                                         key={day}
+                                                                         indicatorName={this.props.name}
+                                                                         currentValue={value}
+                                                                         onValueChange={(newValue, day) => this.handleValueChange(newValue, day)}/>);
+        return (
+            <tr>
+                <td>
+                    {this.props.name}
+                </td>
+                {ths}
+            </tr>
+        );
+    }
+}
+
+class IndicatorValue extends Component {
     constructor(props, context) {
         super(props, context);
 
         this.handleShow = this.handleShow.bind(this);
         this.handleClose = this.handleClose.bind(this);
+        this.handleChange = this.handleChange.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
 
         this.state = {
-            show: false
+            show: false,
+            value: this.props.currentValue,
         };
     }
 
     handleShow() {
+        console.log("in show");
         this.setState({show: true});
     }
 
@@ -111,30 +146,40 @@ class Indicator extends Component  {
         this.setState({show: false});
     }
 
-    render() {
-        const daysInMonth = new Date(2018, this.props.currentMonth, 0).getDate();
+    handleChange(e) {
+        this.setState({value: e.target.value});
+    }
 
-        let values = this.props.history.filter(history => history.month === this.props.currentMonth)[0].values.slice(0, daysInMonth);
-        let ths = values.map(value => <td>{value}</td>);
-        return (
-            <tr>
-                <td>
-                    <p onClick={this.handleShow}>{this.props.name}</p>
-                    <Modal show={this.state.show} onHide={this.handleClose}>
-                        <Modal.Header closeButton>
-                            <Modal.Title>{this.props.name}</Modal.Title>
-                        </Modal.Header>
-                        <Modal.Body>
-                            Изменяйте индикатор тут
-                        </Modal.Body>
-                        <Modal.Footer>
-                            <Button onClick={this.handleClose}>Close</Button>
-                        </Modal.Footer>
-                    </Modal>
-                </td>
-                {ths}
-            </tr>
-        );
+    handleSubmit() {
+        this.props.onValueChange(Number.parseInt(this.state.value, 10), this.props.day);
+        this.handleClose();
+    }
+
+    render() {
+        return (<td>
+            <p onClick={this.handleShow}>{this.props.currentValue === 0 ? "-": this.props.currentValue}</p>
+            <Modal show={this.state.show} onHide={this.handleClose}>
+                <Modal.Header>
+                    {this.props.indicatorName}
+                </Modal.Header>
+                <Modal.Body>
+                    <ControlLabel>Введите  новое значение для {dateTimeFormatter.format(new Date(2018, 3, this.props.day))}</ControlLabel>
+                    <FormControl
+                        autoFocus
+                        type="text"
+                        value={this.state.value}
+                        placeholder="Enter text"
+                        onChange={this.handleChange}
+                        onKeyPress={(event) => {
+                            if(event.key === 'Enter'){this.handleSubmit();}}}
+                    />
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button onClick={this.handleSubmit} bsStyle="primary">Сохранить</Button>
+                    <Button onClick={this.handleClose}>Отмена</Button>
+                </Modal.Footer>
+            </Modal>
+        </td>);
     }
 }
 
