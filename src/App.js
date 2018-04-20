@@ -29,12 +29,6 @@ class App extends Component {
         super(props);
         this.state = {
             currentMonth: Months.May,
-            indicators: [
-                {
-                    name: 'Текущая страница книги Джедайские техники',
-                    history: Array(30).fill(0),
-                },
-            ]
         };
     }
 
@@ -43,7 +37,7 @@ class App extends Component {
             <Grid>
                 <Row className="show-grid">
                     <Col xs={12} md={8}>
-                        <IndicatorsList indicators={this.state.indicators} currentMonth={this.state.currentMonth}/>
+                        <IndicatorsList currentMonth={this.state.currentMonth}/>
                     </Col>
                 </Row>
             </Grid>
@@ -56,12 +50,18 @@ class IndicatorsList extends Component {
         super(props);
         this.state = {
             showCreateIndicator: false,
-            indicators: props.indicators,
+            indicators: [],
         };
 
         this.handleShowCreateIndicator = this.handleShowCreateIndicator.bind(this);
         this.handleCloseCreateIndicator = this.handleCloseCreateIndicator.bind(this);
         this.handleAddIndicator = this.handleAddIndicator.bind(this);
+    }
+
+    componentDidMount() {
+        fetch("http://localhost:8080/indicators")
+            .then(response => response.json())
+            .then(data => {console.log(data); this.setState({ indicators: data });});
     }
 
     handleCloseCreateIndicator() {
