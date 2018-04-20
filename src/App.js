@@ -45,6 +45,7 @@ class App extends Component {
     }
 }
 
+const API = "http://localhost:8080/indicators";
 class IndicatorsList extends Component {
     constructor(props) {
         super(props);
@@ -59,7 +60,7 @@ class IndicatorsList extends Component {
     }
 
     componentDidMount() {
-        fetch("http://localhost:8080/indicators")
+        fetch(API)
             .then(response => response.json())
             .then(data => {console.log(data); this.setState({ indicators: data });});
     }
@@ -81,6 +82,14 @@ class IndicatorsList extends Component {
                       });
 
         this.handleCloseCreateIndicator();
+
+        fetch(API, {
+            body: JSON.stringify({name: this.state.newIndicatorName}),
+            method: 'POST',
+            headers: {
+                'content-type': 'application/json'
+            },
+        }).then(response => console.log(response));
     }
 
     render() {
