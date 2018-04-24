@@ -170,7 +170,7 @@ class Indicator extends Component {
     handleValueChange(newValue, day) {
         // console.log('set new value= ' + newValue + ' for day ' + day);
         let valuesForCurrentMonth = this.state.history;
-        valuesForCurrentMonth[day] = newValue;
+        valuesForCurrentMonth[day].value = newValue;
         this.setState({history: valuesForCurrentMonth});
     }
 
@@ -179,7 +179,7 @@ class Indicator extends Component {
         console.log(this.props.name + ' ' + daysInMonth + ' ' + this.props.month);
         let ths = Array(daysInMonth);
         for (var index = 0; index < daysInMonth; index++) {
-            let value = index >= this.state.history.length? 0: this.state.history[index];
+            let value = index >= this.state.history.length? 0: this.state.history[index].value;
             ths.push(<IndicatorValue day={index}
                                      key={index}
                                      indicatorName={this.props.name}

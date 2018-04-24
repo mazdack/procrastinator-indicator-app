@@ -1,6 +1,8 @@
 package ru.mazdack.procrastinatorindicator.api;
 
-import java.util.Collections;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -9,8 +11,15 @@ import org.springframework.stereotype.Component;
 public class DataBaseLoader implements CommandLineRunner {
   @Autowired
   private IndicatorRepository indicatorRepository;
+
   @Override
   public void run(String... args) {
-    indicatorRepository.save(Indicator.builder().name("First indicator").history(Collections.emptyList()).build());
+    Indicator firstIndicator = Indicator.builder()
+      .name("First indicator")
+      .history(new ArrayList<>())
+      .build();
+    LocalDateTime date = LocalDate.of(2018, 4, 10).atStartOfDay();
+    firstIndicator.addValue(date, 10);
+    indicatorRepository.save(firstIndicator);
   }
 }

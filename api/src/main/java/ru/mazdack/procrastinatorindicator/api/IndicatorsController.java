@@ -1,5 +1,6 @@
 package ru.mazdack.procrastinatorindicator.api;
 
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -19,7 +20,7 @@ public class IndicatorsController {
 
   @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
   @ResponseBody
-  public Iterable<Indicator> getIndicators() {
+  public List<Indicator> getIndicators() {
     return indicatorRepository.findAll();
   }
 
