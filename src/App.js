@@ -62,7 +62,18 @@ class IndicatorsList extends Component {
     componentDidMount() {
         fetch(API)
             .then(response => response.json())
-            .then(data => {console.log(data); this.setState({ indicators: data });});
+            .then(response => {
+                console.log(response);
+                for (let indicator of response) {
+                    console.log(indicator);
+                    for(let value of indicator.history) {
+                        value.date = new Date(value.date);
+                        console.log(value);
+                    }
+                }
+                return response;
+            })
+            .then(data => {this.setState({ indicators: data });});
     }
 
     handleCloseCreateIndicator() {
@@ -168,15 +179,21 @@ class Indicator extends Component {
     }
 
     handleValueChange(newValue, day) {
-        // console.log('set new value= ' + newValue + ' for day ' + day);
         let valuesForCurrentMonth = this.state.history;
-        valuesForCurrentMonth[day].value = newValue;
+        if (valuesForCurrentMonth[day] && valuesForCurrentMonth[day].hasOwnProperty('value')) {
+            valuesForCurrentMonth[day].value = newValue;
+        } else {
+            valuesForCurrentMonth[day] = {
+                value: newValue,
+                date:  new Date(2018, this.props.month, day),
+            }
+        }
         this.setState({history: valuesForCurrentMonth});
     }
 
     render() {
         const daysInMonth = new Date(2018, this.props.month, 0).getDate();
-        console.log(this.props.name + ' ' + daysInMonth + ' ' + this.props.month);
+        // console.log(this.props.name + ' ' + daysInMonth + ' ' + this.props.month);
         let ths = Array(daysInMonth);
         for (var index = 0; index < daysInMonth; index++) {
             let value = index >= this.state.history.length? 0: this.state.history[index].value;
@@ -186,11 +203,7 @@ class Indicator extends Component {
                                      currentValue={value}
                                      onValueChange={(newValue, day) => this.handleValueChange(newValue, day)}/>);
         }
-        // let ths = this.state.history.map((value, day) => <IndicatorValue day={day}
-        //                                                                  key={day}
-        //                                                                  indicatorName={this.props.name}
-        //                                                                  currentValue={value}
-        //                                                                  onValueChange={(newValue, day) => this.handleValueChange(newValue, day)}/>);
+
         return (
             <tr>
                 <td>
@@ -218,7 +231,7 @@ class IndicatorValue extends Component {
     }
 
     handleShow() {
-        console.log("in show");
+        // console.log("in show");
         this.setState({show: true});
     }
 
