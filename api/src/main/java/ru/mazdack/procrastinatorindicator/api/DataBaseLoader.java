@@ -18,7 +18,7 @@ public class DataBaseLoader implements CommandLineRunner {
       .name("First indicator")
       .history(new ArrayList<>())
       .build();
-    LocalDateTime date = LocalDate.of(2018, 4, 10).atStartOfDay();
+    LocalDate date = LocalDate.of(2018, 4, 10);
     firstIndicator.addValue(date, 10);
     indicatorRepository.save(firstIndicator);
   }

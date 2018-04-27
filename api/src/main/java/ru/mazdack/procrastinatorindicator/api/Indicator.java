@@ -1,6 +1,7 @@
 package ru.mazdack.procrastinatorindicator.api;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -27,9 +28,10 @@ public class Indicator {
   private String name;
 
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "indicator", fetch = FetchType.EAGER)
-  private List<IndicatorValue> history;
+  @Builder.Default
+  private List<IndicatorValue> history = new ArrayList<>();
 
-  public void addValue(LocalDateTime date, int value) {
+  public void addValue(LocalDate date, int value) {
     this.history.add(new IndicatorValue(this, date, value));
   }
 }

@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -16,12 +17,12 @@ import org.springframework.web.bind.annotation.RestController;
 @CrossOrigin(maxAge = 3600)
 public class IndicatorsController {
   @Autowired
-  private IndicatorRepository indicatorRepository;
+  private IndicatorService indicatorService;
 
   @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
   @ResponseBody
-  public List<Indicator> getIndicators() {
-    return indicatorRepository.findAll();
+  public List<Indicator> getIndicators(@RequestParam Integer year, @RequestParam Integer month) {
+    return indicatorService.findByYearAndMonth(year, month);
   }
 
   @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
