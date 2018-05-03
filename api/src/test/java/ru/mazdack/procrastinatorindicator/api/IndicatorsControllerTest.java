@@ -1,5 +1,6 @@
 package ru.mazdack.procrastinatorindicator.api;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import static java.lang.Math.toIntExact;
 import java.time.LocalDate;
 import java.time.Month;
@@ -9,20 +10,28 @@ import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.*;
+import org.hibernate.Hibernate;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Matchers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import org.springframework.transaction.annotation.Transactional;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -32,6 +41,8 @@ public class IndicatorsControllerTest {
   private MockMvc mockMvc;
   @Autowired
   private IndicatorRepository indicatorRepository;
+  @Autowired
+  private ObjectMapper objectMapper;
 
   @Before
   public void setUp() throws Exception {
@@ -45,7 +56,7 @@ public class IndicatorsControllerTest {
 
   @Test
   public void testGetIndicatorsReturnsHistoryForSpecificMonth() throws Exception {
-    Indicator indicator = indicatorRepository.save(Indicator.builder().name("TEST").build());
+    Indicator indicator = createAndSaveTestIndicator();
     int year = 2018;
     Month month = Month.APRIL;
 
@@ -60,7 +71,58 @@ public class IndicatorsControllerTest {
 
     this.mockMvc.perform(get("/indicators").param("year", String.valueOf(year)).param("month", String.valueOf(month.getValue())))
       .andExpect(status().isOk())
-      .andExpect(jsonPath("$[0].name", is("TEST")))
+      .andExpect(jsonPath("$[0].name", is(indicator.getName())))
       .andExpect(jsonPath("$[0].history", hasSize(Math.toIntExact(daysRange.getMaximum()))));
+  }
+
+  @Test
+  public void testCreateIndicator() throws Exception {
+    Indicator indicator = createTestIndicator();
+
+    String contentAsString = this.mockMvc.perform(post("/indicators").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(indicator)))
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$.name", is(indicator.getName())))
+      .andExpect(jsonPath("$.id", is(notNullValue())))
+      .andReturn().getResponse().getContentAsString();
+
+    indicator = objectMapper.readValue(contentAsString, Indicator.class);
+    assertNotNull(indicatorRepository.getOne(indicator.getId()));
+  }
+
+  @Test
+  @Transactional
+  public void testAddIndicatorValue() throws Exception {
+    Long indicatorId = createAndSaveTestIndicator().getId();
+
+    IndicatorValue indicatorValue = IndicatorValue.builder().date(LocalDate.of(2018, 4, 20)).value(10).build();
+
+    this.mockMvc.perform(post("/indicators/{id}", indicatorId).contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(indicatorValue)))
+      .andExpect(status().isOk());
+
+    Indicator indicator = indicatorRepository.getOne(indicatorId);
+    assertEquals(1, indicator.getHistory().size());
+    assertEquals(indicatorValue.getValue(), indicator.getHistory().get(0).getValue());
+    assertEquals(indicatorValue.getDate(), indicator.getHistory().get(0).getDate());
+  }
+
+  @Test
+  @Ignore
+  public void testChangeIndicator() {
+
+  }
+
+  @Test
+  @Ignore
+  public void testChangeIndicatorValue() {
+
+  }
+
+  private Indicator createAndSaveTestIndicator() {
+    return indicatorRepository.save(createTestIndicator());
+  }
+
+  private Indicator createTestIndicator() {
+    String name = "TEST INDICATOR";
+    return Indicator.builder().name(name).build();
   }
 }

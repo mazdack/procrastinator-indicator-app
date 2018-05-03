@@ -34,4 +34,8 @@ public class Indicator {
   public void addValue(LocalDate date, int value) {
     this.history.add(new IndicatorValue(this, date, value));
   }
+
+  public void addValue(IndicatorValue indicatorValue) {
+    this.addValue(indicatorValue.getDate(), indicatorValue.getValue());
+  }
 }

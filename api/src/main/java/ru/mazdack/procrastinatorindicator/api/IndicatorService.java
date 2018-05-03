@@ -21,4 +21,12 @@ public class IndicatorService {
 
     return all;
   }
+
+  public Indicator save(Indicator indicator) {
+    return indicatorRepository.save(indicator);
+  }
+
+  public Indicator getOne(Long indicatorId) {
+    return indicatorRepository.getOne(indicatorId);
+  }
 }
